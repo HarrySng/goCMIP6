@@ -1,4 +1,4 @@
-# go_cmip6
+# goCMIP6
 
 ## This is a research project repository for downscaling and bias-correction of CMIP6 data.
 
