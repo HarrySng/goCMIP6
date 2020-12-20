@@ -21,7 +21,12 @@ for mdl in CanESM5 # 3rd loop over model
 do # 3rd loop do
 python getnc.py $var $exp $mdl # This will create params.json
 ./sproket -config params.json # Downloads the netcdf file according to parameters in json file
-while [ ! -s *.nc ] # While the file is download, its extension is nc_0, so wait till .nc exists
+# While the file is downloading, its extension is nc_0, when download completes, its written as .nc
+if [! -e *.nc_0]  # If nc_0 not created, means no found file for download
+then
+	continue # Continue to next iteration
+fi
+while [ ! -e *.nc ] # Otherwise wait for the nc_0 to convert to nc which means download completed
 do
 	: # Do nothing till file completely downloaded
 done

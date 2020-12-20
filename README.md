@@ -6,7 +6,7 @@
 
 ### The high-level steps of the pipeline will be as following:
 
-1. Download CMIP6 products through the Earth System Grid Federation (ESGF) [RESTful API service](https://esgf.github.io/esgf-user-support/user_guide.html#the-esgf-search-restful-api) using Go.
+1. Download CMIP6 products. There's already a useful binary for it here https://github.com/ESGF/sproket.
 
 2. Subsetting the products over the study area using the [NCO library](http://nco.sourceforge.net/).
 

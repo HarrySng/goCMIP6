@@ -13,7 +13,7 @@ dict = {
 		"variable_id": var,
 		"experiment_id": experiment,
 		"source_id": source,
-		"table_id": "Amon",
+		"table_id": "day",
         "variant_label": "r1i1p1f1",
         "project": "CMIP6"
 	}
