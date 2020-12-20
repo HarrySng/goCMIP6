@@ -6,7 +6,7 @@
 
 ### The high-level steps of the pipeline will be as following:
 
-1. Download CMIP6 products. There's already a useful binary for it here https://github.com/ESGF/sproket.
+1. Download CMIP6 products from ESGF. There's already a useful binary for it here https://github.com/ESGF/sproket.
 
 2. Subsetting the products over the study area using the [NCO library](http://nco.sourceforge.net/).
 

@@ -13,28 +13,41 @@
 
 cd rawnc
 
-for var in pr tasmax tasmin # 1st loop over variables
-do # 1st loop do
-for exp in historical ssp245 # 2nd loop over experiment
-do # 2nd loop do
-for mdl in CanESM5 # 3rd loop over model
-do # 3rd loop do
-python getnc.py $var $exp $mdl # This will create params.json
-./sproket -config params.json # Downloads the netcdf file according to parameters in json file
-# While the file is downloading, its extension is nc_0, when download completes, its written as .nc
-if [! -e *.nc_0]  # If nc_0 not created, means no found file for download
-then
-	continue # Continue to next iteration
-fi
-while [ ! -e *.nc ] # Otherwise wait for the nc_0 to convert to nc which means download completed
-do
-	: # Do nothing till file completely downloaded
+for mdl in CanESM5 NorESM2-LM IPSL-CM6A-LR EC-Earth3 ACCESS-CM2; do
+	for exp in historical ssp245; do
+		for var in pr tasmax tasmin; do
+			python getnc.py $var $exp $mdl
+			./sproket -config params.json # a1
+			while [ ! -e *.part]; do # a2
+				:
+			done
+		done
+	done
 done
-mv *.nc ${var}_${exp}_${mdl}.nc # Rename the file
-ncks -d lat,43.,54. -d lon,65.,95. ${var}_${exp}_${mdl}.nc -O ${var}_${exp}_${mdl}_subset.nc # Subset over study area
-cdo remapbil,target_grid ${var}_${exp}_${mdl}_subset.nc ${var}_${exp}_${mdl}_d.nc # 
-rm -f ${var}_${exp}_${mdl}_subset.nc ${var}_${exp}_${mdl}.nc # Cleanup
-mv ${var}_${exp}_${mdl}_d.nc ../ncfiles/${var}_${exp}_${mdl}_d.nc
+
+# All files have been downloaded by the above loop
+# Now subset and downscale and move to another directory
+
+for file in *.nc; do
+	fname=$(echo "$file" | cut -d'.' -f 1)
+	ncks -d lat,43.,54. -d lon,65.,95. $file -O ${fname}_subset.nc
+	rm -f $file
+	cdo remapbil,target_grid ${fname}_subset.nc ${fname}_d.nc
+	rm ${fname}_subset.nc
+	mv ${fname}_d.nc ../ncfiles/${fname}_d.nc
 done
-done
-done
+
+
+# a1
+	# sprocket will start downloading 1 or multiple files
+	# depending on whether that scenario has just 1 nc file
+	# or it is split into multiple nc files.
+
+# a2
+	# When files are being downloaded, they are named as 
+	# .part. Once the download is complete, they are named
+	# to .nc
+	# So, this command checks whether any .part file is 
+	# remaining in the directory. This way the next
+	# iteration only starts when all files from one
+	# iteration have been fulle downloaded.
