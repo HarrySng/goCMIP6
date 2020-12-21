@@ -60,7 +60,7 @@ cdo --version
 ## Subsetting and Downscaling NetCDF files
 
 ```zsh
-# downscale.sh is a wrapper job that triggers everything else
+# wrapper.sh is a wrapper job that triggers everything else
 # Three parameters can be customized in the job
 
 for mdl in CanESM5 NorESM2-LM IPSL-CM6A-LR EC-Earth3 ACCESS-CM2; do # Add/remove GCMs here (source_id in ESGF)
@@ -84,14 +84,14 @@ done
 // Call goncdf.go to split into grid-wise independent files using Goroutines to feed into bias-correction process
 // Here's the primary chunk of code that does the splitting
 
-    var wg sync.WaitGroup
-
-	for i := 0; i < vr.Len(); i++ {
-		wg.Add(1)
-		f := "./dataFiles/v" + strconv.Itoa(i) + ".txt"
-		go writeData(vr.Index(i).Interface().([][]float32), f, &wg)
+	for i := 0; i < vr.Len(); i++ { // Loop across 1st dim (lat)
+		for j := 0; j < len(vr.Index(i).Interface().([][]float32)); j++ { // Loop across 2nd dim (lon)
+			wg.Add(1) // Send a signal to the workgroup that an iteration has initiated
+			f := "./dataFiles/v" + strconv.Itoa(i) + "_" + strconv.Itoa(j) + ".txt"
+			go writeData(sem, vr.Index(i).Interface().([][]float32)[j], f, &wg) // Write 3rd dim to file (time)
+		}
+		wg.Wait() // Stop "main" from exiting till all goroutines finish
 	}
-	wg.Wait()
 ```
 
 ## Bias-correction and Creation of new NetCDF files
@@ -111,7 +111,7 @@ done
               silent = T)
 return(mbc.n)
 
-# New NetCDF files created in createNCFiles.R
+# New NetCDF files created in createnc.R
 ```
 
 # To Do

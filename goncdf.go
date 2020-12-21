@@ -70,22 +70,20 @@ func main() {
 		creating space for another iteration to start.
 	*/
 
-	for i := 0; i < vr.Len(); i++ {
-		wg.Add(1) // Send a signal to the workgroup that an iteration has initiated
-		f := "./dataFiles/v" + strconv.Itoa(i) + ".txt"
-		go writeData(sem, vr.Index(i).Interface().([][]float32), f, &wg)
-		/*
-			This will only work when you know the type is float 32
-			See it with fmt.printf("T", vr.Index(0))
-		*/
+	for i := 0; i < vr.Len(); i++ { // Loop across 1st dim (lat)
+		for j := 0; j < len(vr.Index(i).Interface().([][]float32)); j++ { // Loop across 2nd dim (lon)
+			wg.Add(1) // Send a signal to the workgroup that an iteration has initiated
+			f := "./dataFiles/v" + strconv.Itoa(i) + "_" + strconv.Itoa(j) + ".txt"
+			go writeData(sem, vr.Index(i).Interface().([][]float32)[j], f, &wg) // Write 3rd dim to file (time)
+		}
+		wg.Wait() // Stop "main" from exiting till all goroutines finish
 	}
-	wg.Wait() // Stop "main" from exiting till all goroutines finish
 
 	elapsed := time.Since(start)
 	fmt.Printf("The call took %v to run.\n", elapsed)
 }
 
-func writeData(sem chan int, d [][]float32, f string, wg *sync.WaitGroup) {
+func writeData(sem chan int, d []float32, f string, wg *sync.WaitGroup) {
 
 	defer wg.Done()
 	/*
