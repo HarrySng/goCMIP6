@@ -26,15 +26,9 @@ func main() {
 	// Track performance
 	start := time.Now()
 
-	readnetCDF(fname, varName) // primary function call
-
-	elapsed := time.Since(start)
-	fmt.Printf("The call took %v to run.\n", elapsed)
-}
-
-func readnetCDF(fname string, varName string) {
-	nc, err := netcdf.Open(fname)
+	nc, err := netcdf.Open(fname) // Open netcdf file
 	handleError(err)
+
 	defer nc.Close()
 
 	vg, err := nc.GetVariable(varName)
@@ -59,21 +53,55 @@ func readnetCDF(fname string, varName string) {
 		This stores a reflected value of the interface which can be indexed and iterated over
 	*/
 
-	var wg sync.WaitGroup
+	var wg sync.WaitGroup // Start a waitgroup to ensure all goroutines finish before "main" exits
+	sem := make(chan int, 1000)
+	/*
+		Channels are used to limit the number of concurrent goroutines.
+		Here, a channel of specific size is initiated (1000) which
+		ensures that only 1000 goroutines can run at a time.
+		This ensures memory issues as well as limits on concurrent
+		number of files open at one time on the OS.
+
+		For every iteration, an integer is entered into this channel.
+		The channel keeps accepting integers till it reaches its size limit.
+		Then it stops accepting anymore insertions, thus ensuring the next
+		iteration does not execute.
+		At the end of iteration, the integer is pulled out of the channel
+		creating space for another iteration to start.
+	*/
 
 	for i := 0; i < vr.Len(); i++ {
-		wg.Add(1)
+		wg.Add(1) // Send a signal to the workgroup that an iteration has initiated
 		f := "./dataFiles/v" + strconv.Itoa(i) + ".txt"
-		go writeData(vr.Index(i).Interface().([][]float32), f, &wg)
+		go writeData(sem, vr.Index(i).Interface().([][]float32), f, &wg)
 		/*
 			This will only work when you know the type is float 32
 			See it with fmt.printf("T", vr.Index(0))
 		*/
 	}
-	wg.Wait()
+	wg.Wait() // Stop "main" from exiting till all goroutines finish
+
+	elapsed := time.Since(start)
+	fmt.Printf("The call took %v to run.\n", elapsed)
 }
 
-func writeData(d [][]float32, f string, wg *sync.WaitGroup) {
+func writeData(sem chan int, d [][]float32, f string, wg *sync.WaitGroup) {
+
+	defer wg.Done()
+	/*
+		The defer command will always run before a function
+		exits. This ensures wg always knows this gorutine
+		is done, even if it encounters an error.
+	*/
+
+	sem <- 1 // Push an integer into the channel
+	defer func() {
+		<-sem // Pull an integer out of the channel
+	}()
+	/*
+		The pull is inside a "defer" func making sure
+		the integer is pulled out before function exits.
+	*/
 
 	file, err := os.Create(f)
 	handleError(err)
