@@ -23,6 +23,11 @@ func main() {
 	fname := os.Args[1]   // netcdf file name
 	varName := os.Args[2] // variable name to extract
 
+	path := "./" + varName + "/"                     // Create path by variable name
+	if _, err := os.Stat(path); os.IsNotExist(err) { // If path does not exist, create it
+		os.Mkdir(path, os.ModePerm)
+	}
+
 	// Track performance
 	start := time.Now()
 
@@ -73,7 +78,7 @@ func main() {
 	for i := 0; i < vr.Len(); i++ { // Loop across 1st dim (lat)
 		for j := 0; j < len(vr.Index(i).Interface().([][]float32)); j++ { // Loop across 2nd dim (lon)
 			wg.Add(1) // Send a signal to the workgroup that an iteration has initiated
-			f := "./dataFiles/v" + strconv.Itoa(i) + "_" + strconv.Itoa(j) + ".txt"
+			f := path + strconv.Itoa(i+1) + "_" + strconv.Itoa(j+1) + ".txt"
 			go writeData(sem, vr.Index(i).Interface().([][]float32)[j], f, &wg) // Write 3rd dim to file (time)
 		}
 		wg.Wait() // Stop "main" from exiting till all goroutines finish
