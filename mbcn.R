@@ -1,19 +1,4 @@
-######################################################################################
-#                    N-Dimensional Multivariate Bias Correction - Part 1             #
-#                               Created By: Harry Singh                              #
-#                       Team: Melika Rahimimovaghar, M Reza Najafi                   #
-#                                 Date: Aug-01-2019                                  #
-######################################################################################
-
-# Objective
-# N-Dimensional Multivariate Bias Correction (Cannon, 2018) of 8 CMIP5 GCMs (RCP 4.5 and 8.5) over Basins in Southern Canada
-
-# Pre-processing
-	# All GCMs are downscaled to match observations
-	# The data was extracted from NetCDF files and saved as gridwise lists in RDS files
-	# See NetCDF attributes for details.
-
-# All scripts are executed using a shell script to iterate over GCMs.
+# Author: Harry Singh
 
 # Load libraries
 library(MBC)

@@ -22,11 +22,9 @@ import (
 func main() {
 	fname := os.Args[1]   // netcdf file name
 	varName := os.Args[2] // variable name to extract
+	exp := os.Args[3]     // Experiment name
 
-	path := "./" + varName + "/"                     // Create path by variable name
-	if _, err := os.Stat(path); os.IsNotExist(err) { // If path does not exist, create it
-		os.Mkdir(path, os.ModePerm)
-	}
+	path := "./" + varName + "_" + exp + "/" // Create path by variable name
 
 	// Track performance
 	start := time.Now()

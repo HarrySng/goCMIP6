@@ -2,17 +2,21 @@
 
 cd rawnc
 
-#for mdl in CanESM5 NorESM2-LM IPSL-CM6A-LR EC-Earth3 ACCESS-CM2; do
-#	for exp in historical ssp245; do
-#		for var in pr tasmax tasmin; do
-#			python getnc.py $var $exp $mdl
-#			./sproket -config params.json # a1
-#			while [ ! -e *.part]; do # a2
-#				:
-#			done
-#		done
-#	done
-#done
+declare -a model=("CanESM5" "NorESM2-LM" "IPSL-CM6A-LR" "EC-Earth3" "ACCESS-CM2")
+declare -a experiment=("historical" "ssp245")
+declare -a variable=("pr" "tasmax" "tasmin")
+
+for mdl in "${model[@]}"; do
+	for exp in "${experiment[@]}"; do
+		for var in "${variable[@]}"; do
+			python getnc.py $var $exp $mdl
+			./sproket -config params.json # a1
+			while [ ! -e *.part]; do # a2
+				:
+			done
+		done
+	done
+done
 
 echo "All files downloaded."
 
@@ -34,13 +38,17 @@ echo "All files downscaled and moved to ncfiles/"
 
 cd ../ncfiles/
 
-# Processing starts here
-for file in *.nc; do
-	var=$(echo "$file" | cut -d'_' -f 1) # Extract variable name
-	echo "Splitting $file"
-	go run ../goncdf.go $file $var
+for mdl in "${model[@]}"; do # For each model
+	for exp in "${experiment[@]}"; do # For each experiment
+    	for file in $(find -name "*${mdl}_${exp}*"); do # Files specific to that model-experiment
+	    	var=$(echo "$file" | cut -d'_' -f 1) # Extract variable name
+	    	mkdir ${var}_${exp} # Create separate directory
+        	go run ../goncdf.go $file $var $exp
+    	done
+	done
+	echo "All files for ${mdl} have been split. Starting bias-correction now."
+	# Run R script here
 done
-
 
 # a1
 	# sprocket will start downloading 1 or multiple files
