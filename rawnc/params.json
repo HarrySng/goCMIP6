@@ -1,1 +1,0 @@
-{"search_api": "https://esgf-node.llnl.gov/esg-search/search/", "data_node_priority": ["aims3.llnl.gov", "esgf-data1.llnl.gov"], "fields": {"variable_id": "tasmax", "experiment_id": "ssp245", "source_id": "CanESM5", "table_id": "day", "variant_label": "r1i1p1f1", "project": "CMIP6"}}
