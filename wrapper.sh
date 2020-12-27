@@ -1,5 +1,5 @@
 #!/bin/bash
-
+ 
 cd rawnc
 
 declare -a model=("CanESM5" "NorESM2-LM" "IPSL-CM6A-LR" "EC-Earth3" "ACCESS-CM2")
@@ -11,7 +11,7 @@ for mdl in "${model[@]}"; do
 		for var in "${variable[@]}"; do
 			python getnc.py $var $exp $mdl
 			./sproket -config params.json # a1
-			while [ ! -e *.part]; do # a2
+			while [ -e *.part ]; do # a2
 				:
 			done
 		done
@@ -20,12 +20,19 @@ done
 
 echo "All files downloaded."
 
+mkdir -p ../ncfiles
+
 # All files have been downloaded by the above loop
 # Now subset and downscale and move to another directory
 
+for file in *.nc_0; do # Some files are named .nc_0, change them to .nc
+	fname=$(echo "$file" | rev | cut -d'.' -f 2- | rev)
+	mv ${file} ${fname}.nc
+done
+
 for file in *.nc; do
 	echo "Downscaling $file"
-	fname=$(echo "$file" | cut -d'.' -f 1)
+	fname=$(echo "$file" | rev | cut -d'.' -f 2- | rev)
 	ncks -d lat,43.,54. -d lon,65.,95. $file -O ${fname}_subset.nc
 	rm -f $file
 	cdo remapbil,target_grid ${fname}_subset.nc ${fname}_d.nc
@@ -41,7 +48,7 @@ cd ../ncfiles/
 for mdl in "${model[@]}"; do # For each model
 	for exp in "${experiment[@]}"; do # For each experiment
     	for file in $(find -name "*${mdl}_${exp}*"); do # Files specific to that model-experiment
-	    	var=$(echo "$file" | cut -d'_' -f 1) # Extract variable name
+	    	var=$(echo "$file" | cut -d'_' -f 1 | rev | cut -d'.' -f 1 | rev) # Extract variable name
 	    	mkdir ${var}_${exp} # Create separate directory
         	go run ../goncdf.go $file $var $exp
     	done

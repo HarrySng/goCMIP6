@@ -63,12 +63,16 @@ cdo --version
 # wrapper.sh is a wrapper job that triggers everything else
 # Three parameters can be customized in the job
 
-for mdl in CanESM5 NorESM2-LM IPSL-CM6A-LR EC-Earth3 ACCESS-CM2; do # Add/remove GCMs here (source_id in ESGF)
-	for exp in historical ssp245; do # Add/remove experiments here (experiment_id in ESGF)
-		for var in pr tasmax tasmin; do # Add/remove variables here (variable_id in ESGF)
+declare -a model=("CanESM5" "NorESM2-LM" "IPSL-CM6A-LR" "EC-Earth3" "ACCESS-CM2")
+declare -a experiment=("historical" "ssp245")
+declare -a variable=("pr" "tasmax" "tasmin")
+
+for mdl in "${model[@]}"; do
+	for exp in "${experiment[@]}"; do
+		for var in "${variable[@]}"; do
 			python getnc.py $var $exp $mdl
 			./sproket -config params.json # a1
-			while [ ! -e *.part]; do # a2
+			while [ -e *.part ]; do # a2
 				:
 			done
 		done
@@ -87,7 +91,7 @@ done
 	for i := 0; i < vr.Len(); i++ { // Loop across 1st dim (lat)
 		for j := 0; j < len(vr.Index(i).Interface().([][]float32)); j++ { // Loop across 2nd dim (lon)
 			wg.Add(1) // Send a signal to the workgroup that an iteration has initiated
-			f := "./dataFiles/v" + strconv.Itoa(i) + "_" + strconv.Itoa(j) + ".txt"
+			f := path + strconv.Itoa(i) + "_" + strconv.Itoa(j) + ".txt"
 			go writeData(sem, vr.Index(i).Interface().([][]float32)[j], f, &wg) // Write 3rd dim to file (time)
 		}
 		wg.Wait() // Stop "main" from exiting till all goroutines finish
@@ -118,7 +122,7 @@ return(mbc.n)
 
 1. Remove annual-monthly split form mbcn.R
 2. Add moving-windows to mbcn.R
-3. Write a parent wrapper job to execute all scripts.
+3. Test for one-file and multi-file scenario (for ex. CanESM5 vs NorESM2-LM)
 4. Build email alerts within the job to update progress.
 
 <br/>
