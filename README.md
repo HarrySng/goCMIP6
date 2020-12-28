@@ -85,7 +85,7 @@ done
 
 ```go
 // After files have been downloaded, subsetted, downscaled and moved to ncfiles/ directory
-// Call goncdf.go to split into grid-wise independent files using Goroutines to feed into bias-correction process
+// Call gosplit.go to split into grid-wise independent files using Goroutines to feed into bias-correction process
 // Here's the primary chunk of code that does the splitting
 
 	for i := 0; i < vr.Len(); i++ { // Loop across 1st dim (lat)
