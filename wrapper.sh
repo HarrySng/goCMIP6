@@ -1,5 +1,7 @@
 #!/bin/bash
- 
+
+# Create observation matrix here
+
 cd rawnc
 
 declare -a model=("CanESM5" "NorESM2-LM" "IPSL-CM6A-LR" "EC-Earth3" "ACCESS-CM2")
@@ -50,6 +52,8 @@ for mdl in "${model[@]}"; do
 		mkdir -p "./${mdl}_${exp}"
 		go run ../gomat.go $mdl $exp
 	done
+	echo "All txt files created for ${mdl}. Starting bias correction."
+	Rscript mbcn.R ${mdl}
 done
 
 
