@@ -1,5 +1,7 @@
 #!/bin/bash
- 
+
+# Create observation matrix here
+
 cd rawnc
 
 declare -a model=("CanESM5" "NorESM2-LM" "IPSL-CM6A-LR" "EC-Earth3" "ACCESS-CM2")
@@ -45,17 +47,18 @@ echo "All files downscaled and moved to ncfiles/"
 
 cd ../ncfiles/
 
-for mdl in "${model[@]}"; do # For each model
-	for exp in "${experiment[@]}"; do # For each experiment
-    	for file in $(find -name "*${mdl}_${exp}*"); do # Files specific to that model-experiment
-	    	var=$(echo "$file" | cut -d'_' -f 1 | rev | cut -d'.' -f 1 | rev) # Extract variable name
-	    	mkdir ${var}_${exp} # Create separate directory
-        	go run ../goncdf.go $file $var $exp
-    	done
+for mdl in "${model[@]}"; do
+	for exp in "${experiment[@]}"; do
+		mkdir -p "./${mdl}_${exp}"
+		go run ../gomat.go $mdl $exp
 	done
-	echo "All files for ${mdl} have been split. Starting bias-correction now."
-	# Run R script here
+	echo "All txt files created for ${mdl}. Starting bias correction."
+	Rscript mbcn.R ${mdl}
 done
+
+
+# var=$(echo "$file" | cut -d'_' -f 1 | rev | cut -d'.' -f 1 | rev) # Extract variable name
+
 
 # a1
 	# sprocket will start downloading 1 or multiple files
