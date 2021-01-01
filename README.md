@@ -120,10 +120,8 @@ return(mbc.n)
 
 # To Do
 
-1. Remove annual-monthly split form mbcn.R
-2. Add moving-windows to mbcn.R
-3. Test for one-file and multi-file scenario (for ex. CanESM5 vs NorESM2-LM)
-4. Build email alerts within the job to update progress.
+1. Test for one-file and multi-file scenario (for ex. CanESM5 vs NorESM2-LM)
+2. Build email alerts within the job to update progress.
 
 <br/>
 
