@@ -12,6 +12,8 @@ gcmHist = paste("./",args[1],"historical/",sep="")
 gcmFut = paste("./",args[1],"ssp245/",sep="")
 ncores <- 30 ; print('Cores detected')
 prd <- 10950 # Number of historical period days (365*30)
+iter <- 30
+rotSeq <- replicate(iter, list(rot.random(3)))
 # Both periods homoeginzed to 365 day calendar by removing leap days
 
 
@@ -45,16 +47,17 @@ mbcnWrapper <- function(o.f, h.f, f.f, i.i) {
       h.w <- dls[[2]]
       f.w <- dls[[3]][w:(w+(prd-1)),]
       mbc.n <- MBCn(o.w, h.w, f.w,
-                    iter = 100,
+                    iter = iter,
                     trace = 0.05,
                     ratio.seq=c(T,F,F),
+                    rot.seq=rotSeq,
                     ties = 'first',
                     jitter.factor=0.0001,
                     silent = T)
       return(list(mbc.n$mhat.c, mbc.n$mhat.p))
    }
 
-   rls <- lapply(w, windowWrapper)
+   rls <- lapply(ww, windowWrapper)
    
    # Now subset projected results
  	subsetProjections <- function(i) {
@@ -86,7 +89,7 @@ writeLines(c(""), "log.txt") # Print iterations to a log file
 print('Starting foreach')
 
 resls <- foreach(o.f = obsFiles, h.f = histFiles, f.f = futFiles, i.i = 1:length(fileNames),
-                 .packages=c('lubridate','MBC','tidyverse'), .export = c("prd")) %dopar% {
+                 .packages=c('lubridate','MBC','tidyverse'), .export = c("prd", "iter", "rotSeq")) %dopar% {
                    sink("log.txt", append=TRUE)
                    cat(paste("\n","Starting iteration",i.i,"\n")) # Print iterations to a log file
                    sink() #end diversion of output
