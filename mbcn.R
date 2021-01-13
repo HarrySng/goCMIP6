@@ -76,7 +76,7 @@ mbcnWrapper <- function(o.f, h.f, f.f, i.i) {
    
  	rmat <- rbind(rls[[1]][[1]], srls) # Join hisotrical and projection into one final result matrix
  	
-   write.csv(paste("./bcdata/",word(o.f,3,3,"/"),".csv",sep=""), row.names = F)
+   write.csv(rmat, paste("./bcdata/",word(o.f,3,3,"/"),".csv",sep=""), row.names = F)
 
 }	
 
@@ -88,7 +88,7 @@ print(paste('Number of cores running is ', ncores, sep = ""))
 writeLines(c(""), "log.txt") # Print iterations to a log file
 print('Starting foreach')
 
-resls <- foreach(o.f = obsFiles, h.f = histFiles, f.f = futFiles, i.i = 1:length(fileNames),
+resls <- foreach(o.f = obsFiles, h.f = histFiles, f.f = futFiles, i.i = 1:length(obsFiles),
                  .packages=c('lubridate','MBC','tidyverse'), .export = c("prd", "iter", "rotSeq")) %dopar% {
                    sink("log.txt", append=TRUE)
                    cat(paste("\n","Starting iteration",i.i,"\n")) # Print iterations to a log file
