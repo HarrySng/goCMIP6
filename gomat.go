@@ -24,13 +24,14 @@ import (
 	"time"
 
 	"github.com/batchatco/go-native-netcdf/netcdf"
+	"github.com/batchatco/go-native-netcdf/netcdf/api"
 )
 
 func main() {
 
 	start := time.Now()
 
-	if len(os.Args) != 2 {
+	if len(os.Args) != 3 {
 		err := errors.New("Please provide two command line arguments (ModelName ExperimentName). Example: CanESM5 ssp245")
 		handleError(err)
 	}
@@ -39,7 +40,7 @@ func main() {
 	exp := os.Args[2] // Experiment name
 
 	// Modifying directories is handled in shell script
-	files, _ := filepath.Glob("*" + mdl + "_" + exp + "*") // Find files in current directory matching pattern
+	files, _ := filepath.Glob("*" + mdl + "_" + exp + "*.nc") // Find files in current directory matching pattern
 
 	// Some repetition to avoid short for loops
 	d0 := getDataSlice(files[0]) // []interface{} returned by func
@@ -117,6 +118,9 @@ func getDataSlice(file string) []interface{} {
 
 	defer nc.Close()
 
+	latLen := getLen(nc, "lat")
+	lonLen := getLen(nc, "lon")
+
 	vg, err := nc.GetVariable(varName)
 	/*
 		vg is a custom type composed of three entities
@@ -142,8 +146,8 @@ func getDataSlice(file string) []interface{} {
 
 	var d []interface{} // Define custom type to hold all slices
 
-	for lat := 0; lat < 144; lat++ { // Loop across 1st dim (lat)
-		for lon := 0; lon < 272; lon++ { // Loop across 2nd dim (lon)
+	for lat := 0; lat < latLen; lat++ { // Loop across 1st dim (lat)
+		for lon := 0; lon < lonLen; lon++ { // Loop across 2nd dim (lon)
 			d = append(d, vr.Index(lat).Interface().([][]float32)[lon])
 			// Apend each slice of len(time) to interface type
 		}
@@ -164,6 +168,13 @@ func getvarName(file string) string {
 		handleError(err)
 	}
 	return varName
+}
+
+func getLen(nc api.Group, d string) int {
+	vr, err := nc.GetVariable(d)
+	handleError(err)
+	dim := vr.Values.([]float64)
+	return len(dim)
 }
 
 func handleError(err error) {
