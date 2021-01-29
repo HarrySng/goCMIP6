@@ -6,7 +6,6 @@
 
 # Pre-requisites
 
-
 ## Install gcc
 
 ```bash
